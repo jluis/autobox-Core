@@ -1256,6 +1256,7 @@ Jacinta Richardson improved documentation.
 
 package autobox::Core::SCALAR;
 
+
 #       Functions for SCALARs or strings
 #          "chomp", "chop", "chr", "crypt", "hex", "index", "lc",
 #           "lcfirst", "length", "oct", "ord", "pack",
@@ -1300,7 +1301,24 @@ sub undef      { $_[0] = undef }
 sub defined    { CORE::defined($_[0]) }
 sub m          { [ $_[0] =~ m{$_[1]} ] }
 sub nm         { [ $_[0] !~ m{$_[1]} ] }
-sub s          { $_[0] =~ s{$_[1]}{$_[2]} }
+
+sub s { 
+    (not defined $_[3] or $_[3] eq '') and return $_[0] =~ s{$_[1]}{$_[2]};
+    $_[3] eq 'e' and return $_[0] =~ s{$_[1]}{$_[2]}ee;
+    $_[3] eq 'g' and return $_[0] =~ s{$_[1]}{$_[2]}g;
+    ($_[3] eq 'eg' or $_[3] eq 'ge') and return $_[0] =~ s{$_[1]}{$_[2]}gee;
+    my $flags = $_[3];
+    if ($flags =~ s/r//) {
+   	 my $string = $_[0];
+         warn "Flags cambian a '$flags'\n";
+    	 $flags eq '' and return do{$string =~ s{$_[1]}{$_[2]};$string};
+         $flags eq 'e' and return do{$string =~ s{$_[1]}{$_[2]}ee;$string};
+         $flags eq 'g' and return do{$string =~ s{$_[1]}{$_[2]}g;$string};
+        ($flags eq 'eg' or $flags eq 'ge') and return do{$string =~ s{$_[1]}{$_[2]}eeg;$string};
+    }
+    die "flags suported are e g r you used '$_[3]'";
+}
+ 
 sub split      { wantarray ? split $_[1], $_[0] : [ split $_[1], $_[0] ] }
 
 sub eval       { CORE::eval "$_[0]"; }
